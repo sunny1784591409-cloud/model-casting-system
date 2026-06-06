@@ -9,101 +9,148 @@ const memoryStore = {};
 const sampleModels = [
   {
     id: createId(),
+    code: "MDL-001",
     name: "林安娜",
     gender: "女",
+    ageGroup: "成人",
     age: 23,
     height: 172,
+    shoeSize: "38",
     measurements: "82/60/88",
+    skinTone: "白皙",
+    hairColor: "黑发",
     city: "上海",
-    fee: 2200,
+    fee: 500,
     availability: "6月可约，周中优先",
-    tags: ["高级感", "画册", "轻奢", "美妆"],
+    tags: ["气质", "画册", "轻奢", "美妆"],
+    works: ["气质护肤品棚拍", "美妆手部特写", "轻奢女装画册"],
+    photo: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
     portfolio: "https://example.com/lin-anna",
     notes: "镜头表现稳定，适合精致商业片。",
     updatedAt: "2026-05-28",
   },
   {
     id: createId(),
+    code: "MDL-002",
     name: "周予白",
     gender: "男",
+    ageGroup: "成人",
     age: 27,
     height: 186,
+    shoeSize: "43",
     measurements: "西装版型好",
+    skinTone: "自然",
+    hairColor: "黑发",
     city: "杭州",
-    fee: 2600,
+    fee: 650,
     availability: "6月下旬可约",
-    tags: ["商务", "成熟", "西装", "走秀"],
+    tags: ["成熟", "商务", "西装", "室内平面"],
+    works: ["成熟商务西装棚拍", "男装详情页", "腕表静态广告"],
+    photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=80",
     portfolio: "https://example.com/zhou-yubai",
     notes: "商务正装、汽车、腕表类客户反馈好。",
     updatedAt: "2026-05-30",
   },
   {
     id: createId(),
+    code: "MDL-003",
     name: "陈洛",
     gender: "女",
+    ageGroup: "成人",
     age: 21,
     height: 168,
+    shoeSize: "37",
     measurements: "80/58/86",
+    skinTone: "自然",
+    hairColor: "棕发",
     city: "广州",
-    fee: 1600,
+    fee: 400,
     availability: "周末可约",
-    tags: ["甜酷", "短视频", "潮牌", "运动"],
+    tags: ["甜美", "短视频", "潮牌", "阳光"],
+    works: ["甜美饮品户外视频", "潮牌短视频", "阳光生活方式外景"],
+    photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
     portfolio: "https://example.com/chen-luo",
     notes: "短视频节奏感好，可配合轻运动内容。",
     updatedAt: "2026-05-22",
   },
   {
     id: createId(),
+    code: "MDL-004",
     name: "孟岚",
     gender: "女",
+    ageGroup: "成人",
     age: 29,
     height: 175,
+    shoeSize: "39",
     measurements: "84/62/90",
+    skinTone: "白皙",
+    hairColor: "黑发",
     city: "北京",
-    fee: 3200,
+    fee: 800,
     availability: "需提前一周锁档",
-    tags: ["高级感", "珠宝", "礼服", "走秀"],
+    tags: ["气质", "珠宝", "礼服", "成熟"],
+    works: ["气质珠宝棚拍", "礼服平面大片", "成熟护肤品广告"],
+    photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80",
     portfolio: "https://example.com/meng-lan",
     notes: "气质强，适合预算较充足的品牌大片。",
     updatedAt: "2026-05-24",
   },
   {
     id: createId(),
+    code: "MDL-005",
     name: "秦野",
     gender: "男",
+    ageGroup: "成人",
     age: 24,
     height: 181,
+    shoeSize: "42",
     measurements: "健身型",
+    skinTone: "小麦",
+    hairColor: "黑发",
     city: "上海",
-    fee: 1800,
+    fee: 450,
     availability: "6月可约",
-    tags: ["运动", "户外", "阳光", "短视频"],
+    tags: ["阳光", "户外", "运动", "室外视频"],
+    works: ["阳光运动外景视频", "户外装备平面", "生活方式短视频"],
+    photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80",
     portfolio: "https://example.com/qin-ye",
     notes: "适合运动、户外生活方式、电商短视频。",
     updatedAt: "2026-05-26",
   },
 ];
 
+const sampleDefaultsByName = new Map(sampleModels.map((model) => [model.name, model]));
+
 let models = loadModels();
 let shortlist = loadJson(shortlistKey, []);
 let currentMatches = [];
 let hasSubmittedBrief = false;
+let pendingMatchButton = null;
+let clientInfo = loadJson("casting-system-client-info", {});
 
 const fields = {
-  projectName: document.querySelector("#projectName"),
+  shootProduct: document.querySelector("#shootProduct"),
+  shootType: document.querySelector("#shootType"),
+  ageGroup: document.querySelector("#ageGroup"),
   gender: document.querySelector("#gender"),
-  ageMin: document.querySelector("#ageMin"),
-  ageMax: document.querySelector("#ageMax"),
+  skinTone: document.querySelector("#skinTone"),
+  hairColor: document.querySelector("#hairColor"),
   heightMin: document.querySelector("#heightMin"),
   heightMax: document.querySelector("#heightMax"),
+  bustMin: document.querySelector("#bustMin"),
+  bustMax: document.querySelector("#bustMax"),
+  waistMin: document.querySelector("#waistMin"),
+  waistMax: document.querySelector("#waistMax"),
+  hipsMin: document.querySelector("#hipsMin"),
+  hipsMax: document.querySelector("#hipsMax"),
   city: document.querySelector("#city"),
   budgetMax: document.querySelector("#budgetMax"),
   shootDate: document.querySelector("#shootDate"),
   styleTags: document.querySelector("#styleTags"),
-  notes: document.querySelector("#notes"),
 };
 
-const briefInputs = Object.values(fields);
+const styleCheckboxes = [...document.querySelectorAll('input[name="styleTags"]')];
+const briefInputs = [...Object.values(fields), ...styleCheckboxes];
 
 const modelFields = {
   id: document.querySelector("#modelId"),
@@ -151,6 +198,10 @@ document.querySelector("#goImportBtn").addEventListener("click", () => switchPag
 document.querySelector("#postTopicType").addEventListener("change", renderPromotionPosts);
 document.querySelector("#generatePostsBtn").addEventListener("click", () => renderPromotionPosts({ regenerate: true }));
 document.querySelector("#copyAllPostsBtn").addEventListener("click", (event) => copyAllPosts(event.currentTarget));
+document.querySelector("#clientInfoForm").addEventListener("submit", submitClientInfo);
+document.querySelectorAll("[data-modal-close]").forEach((button) => {
+  button.addEventListener("click", () => closeModal(button.dataset.modalClose));
+});
 document.addEventListener("click", handleCardAction);
 
 restoreBrief();
@@ -198,10 +249,37 @@ function switchPage(pageName, options = {}) {
 function loadModels() {
   const saved = loadJson(storageKey, null);
   if (saved?.length) {
-    return saved;
+    return saved.map(normalizeModel);
   }
   saveJson(storageKey, sampleModels);
-  return sampleModels;
+  return sampleModels.map(normalizeModel);
+}
+
+function normalizeModel(model, index = 0) {
+  const defaultModel = sampleDefaultsByName.get(model.name) || {};
+  const isLegacySample = Boolean(defaultModel.name && !model.code);
+  return {
+    ...defaultModel,
+    ...model,
+    code: model.code || defaultModel.code || `MDL-${String(index + 1).padStart(3, "0")}`,
+    ageGroup: model.ageGroup || defaultModel.ageGroup || inferAgeGroup(model.age),
+    shoeSize: model.shoeSize || defaultModel.shoeSize || "待补充",
+    skinTone: model.skinTone || defaultModel.skinTone || "自然",
+    hairColor: model.hairColor || defaultModel.hairColor || "黑发",
+    fee: isLegacySample ? defaultModel.fee : toNumber(model.fee) || defaultModel.fee || 0,
+    tags: Array.isArray(model.tags) ? model.tags : splitTags(model.tags || defaultModel.tags),
+    works: Array.isArray(model.works) ? model.works : defaultModel.works || splitTags(model.works || model.notes),
+    photo:
+      model.photo ||
+      defaultModel.photo ||
+      "https://images.unsplash.com/photo-1496440737103-cd596325d314?auto=format&fit=crop&w=900&q=80",
+  };
+}
+
+function inferAgeGroup(age) {
+  if (age && age < 14) return "儿童";
+  if (age && age >= 55) return "老年";
+  return "成人";
 }
 
 function loadJson(key, fallback) {
@@ -238,17 +316,24 @@ function saveModels() {
 
 function getBrief() {
   return {
-    projectName: fields.projectName.value.trim(),
+    shootProduct: fields.shootProduct.value.trim(),
+    shootType: fields.shootType.value,
+    ageGroup: fields.ageGroup.value,
     gender: fields.gender.value,
-    ageMin: toNumber(fields.ageMin.value),
-    ageMax: toNumber(fields.ageMax.value),
+    skinTone: fields.skinTone.value,
+    hairColor: fields.hairColor.value,
     heightMin: toNumber(fields.heightMin.value),
     heightMax: toNumber(fields.heightMax.value),
+    bustMin: toNumber(fields.bustMin.value),
+    bustMax: toNumber(fields.bustMax.value),
+    waistMin: toNumber(fields.waistMin.value),
+    waistMax: toNumber(fields.waistMax.value),
+    hipsMin: toNumber(fields.hipsMin.value),
+    hipsMax: toNumber(fields.hipsMax.value),
     city: fields.city.value.trim(),
     budgetMax: toNumber(fields.budgetMax.value),
     shootDate: fields.shootDate.value,
-    styleTags: splitTags(fields.styleTags.value),
-    notes: fields.notes.value.trim(),
+    styleTags: [...styleCheckboxes.filter((field) => field.checked).map((field) => field.value), ...splitTags(fields.styleTags.value)],
   };
 }
 
@@ -261,7 +346,26 @@ function runMatch() {
   updateStats();
 }
 
-async function submitBrief(button) {
+function submitBrief(button) {
+  if (!document.querySelector("#briefForm").reportValidity()) {
+    showToast("请先填写必填需求");
+    return;
+  }
+  pendingMatchButton = button;
+  document.querySelector("#brandName").value = clientInfo.brandName || "";
+  document.querySelector("#clientContact").value = clientInfo.contact || "";
+  openModal("clientInfoModal");
+}
+
+async function submitClientInfo(event) {
+  event.preventDefault();
+  const button = pendingMatchButton || document.querySelector("#matchBtn");
+  clientInfo = {
+    brandName: document.querySelector("#brandName").value.trim(),
+    contact: document.querySelector("#clientContact").value.trim(),
+  };
+  saveJson("casting-system-client-info", clientInfo);
+  closeModal("clientInfoModal");
   hasSubmittedBrief = true;
   setButtonBusy(button, "正在匹配...");
   await delay(420);
@@ -282,6 +386,25 @@ function scoreModel(model, brief) {
   const reasons = [];
   const misses = [];
 
+  if (brief.shootType) {
+    if (model.tags.some((tag) => tag.includes(brief.shootType) || brief.shootType.includes(tag))) {
+      score += 8;
+      reasons.push("拍摄类型匹配");
+    } else {
+      score -= 3;
+    }
+  }
+
+  if (brief.ageGroup) {
+    if (model.ageGroup === brief.ageGroup) {
+      score += 10;
+      reasons.push("年龄类型符合");
+    } else {
+      score -= 12;
+      misses.push("年龄类型不符");
+    }
+  }
+
   if (brief.gender) {
     if (model.gender === brief.gender) {
       score += 12;
@@ -292,8 +415,31 @@ function scoreModel(model, brief) {
     }
   }
 
-  score += scoreRange(model.age, brief.ageMin, brief.ageMax, 11, "年龄合适", "年龄偏离", reasons, misses);
+  if (brief.skinTone) {
+    if (model.skinTone === brief.skinTone) {
+      score += 7;
+      reasons.push("肤色符合");
+    } else {
+      score -= 3;
+      misses.push("肤色需确认");
+    }
+  }
+
+  if (brief.hairColor) {
+    if (model.hairColor === brief.hairColor) {
+      score += 7;
+      reasons.push("发色符合");
+    } else {
+      score -= 3;
+      misses.push("发色需确认");
+    }
+  }
+
   score += scoreRange(model.height, brief.heightMin, brief.heightMax, 14, "身高合适", "身高偏离", reasons, misses);
+  const measurements = parseMeasurements(model.measurements);
+  score += scoreRange(measurements.bust, brief.bustMin, brief.bustMax, 5, "胸围合适", "胸围偏离", reasons, misses);
+  score += scoreRange(measurements.waist, brief.waistMin, brief.waistMax, 5, "腰围合适", "腰围偏离", reasons, misses);
+  score += scoreRange(measurements.hips, brief.hipsMin, brief.hipsMax, 5, "臀围合适", "臀围偏离", reasons, misses);
 
   if (brief.city) {
     const cityTerms = splitTags(brief.city);
@@ -328,14 +474,6 @@ function scoreModel(model, brief) {
     } else {
       misses.push("风格标签未命中");
     }
-  }
-
-  const noteTerms = splitTags(brief.notes);
-  const searchable = `${model.tags.join(" ")} ${model.notes} ${model.availability}`.toLowerCase();
-  const noteHits = noteTerms.filter((term) => searchable.includes(term.toLowerCase()));
-  if (noteHits.length) {
-    score += Math.min(10, noteHits.length * 4);
-    reasons.push(`额外要求命中：${noteHits.slice(0, 3).join("、")}`);
   }
 
   score = Math.max(0, Math.min(100, score));
@@ -391,14 +529,26 @@ function renderModelCard(model, options = {}) {
   const inShortlist = shortlist.includes(model.id);
   const reasons = showScore && model.match ? [...model.match.reasons, ...model.match.misses].slice(0, 5) : [];
   const detailLine = showScore
-    ? `${escapeHtml(model.measurements || "未填写体型")} · ${escapeHtml(model.availability || "档期待确认")}`
+    ? `三围：${escapeHtml(normalizeMeasurementsText(model.measurements))}`
     : `${escapeHtml(model.measurements || "未填写体型")} · ${escapeHtml(model.availability || "档期待确认")} · 更新 ${escapeHtml(model.updatedAt || "未记录")}`;
+  const title = showScore ? model.code : `${model.code} · ${model.name}`;
+  const basicInfo = `${escapeHtml(model.gender)} / ${model.height}cm / 鞋码${escapeHtml(model.shoeSize)} / ${escapeHtml(model.city)} / ¥${model.fee}/时`;
+  const actions = showScore
+    ? `
+        <button type="button" data-action="shortlist" data-id="${model.id}">${inShortlist ? "移出候选" : "加入候选"}</button>
+        <button type="button" data-action="details" data-id="${model.id}">模特相关资料</button>
+      `
+    : `
+        <button type="button" data-action="shortlist" data-id="${model.id}">${inShortlist ? "移出候选" : "加入候选"}</button>
+        <button type="button" data-action="edit" data-id="${model.id}">编辑</button>
+        <button type="button" data-action="details" data-id="${model.id}">模特相关资料</button>
+      `;
   return `
-    <article class="model-card ${inShortlist ? "is-selected" : ""}">
+    <article class="model-card ${inShortlist ? "is-selected" : ""}" style="--model-photo: url('${escapeAttribute(model.photo)}')">
       <div class="model-card-header">
         <div>
-          <h3>${escapeHtml(model.name)}</h3>
-          <p class="model-meta">${escapeHtml(model.gender)} / ${model.age}岁 / ${model.height}cm / ${escapeHtml(model.city)} / ¥${model.fee}/天</p>
+          <h3>${escapeHtml(title)}</h3>
+          <p class="model-meta">${basicInfo}</p>
         </div>
         ${showScore && model.match ? `<div class="score-badge">${model.match.score}<small>匹配度</small></div>` : ""}
       </div>
@@ -407,9 +557,7 @@ function renderModelCard(model, options = {}) {
       <p class="model-meta">${detailLine}</p>
       ${!showScore && model.notes ? `<p class="model-note">${escapeHtml(model.notes)}</p>` : ""}
       <div class="model-card-actions">
-        <button type="button" data-action="shortlist" data-id="${model.id}">${inShortlist ? "移出候选" : "加入候选"}</button>
-        <button type="button" data-action="edit" data-id="${model.id}">编辑</button>
-        <button type="button" data-action="open" data-id="${model.id}">模卡</button>
+        ${actions}
       </div>
     </article>
   `;
@@ -428,7 +576,7 @@ function handleCardAction(event) {
   if (!model) return;
   if (button.dataset.action === "shortlist") toggleShortlist(model.id);
   if (button.dataset.action === "edit") editModel(model.id);
-  if (button.dataset.action === "open") openPortfolio(model);
+  if (button.dataset.action === "details") openModelDetails(model);
 }
 
 function renderDatabase() {
@@ -643,8 +791,8 @@ function renderShortlist() {
     .map(
       (model) => `
         <div class="shortlist-item">
-          <strong>${escapeHtml(model.name)} · ${model.city}</strong>
-          <p>${model.gender} / ${model.age}岁 / ${model.height}cm / ¥${model.fee}/天</p>
+          <strong>${escapeHtml(model.code)} · ${model.city}</strong>
+          <p>${model.gender} / ${model.height}cm / 鞋码${escapeHtml(model.shoeSize)} / ¥${model.fee}/时</p>
           <p>${model.tags.join("、")}</p>
         </div>
       `,
@@ -680,6 +828,9 @@ function resetBrief() {
   Object.values(fields).forEach((field) => {
     field.value = "";
     field.classList.remove("has-value");
+  });
+  styleCheckboxes.forEach((field) => {
+    field.checked = false;
   });
   removeJson(briefKey);
   hasSubmittedBrief = false;
@@ -872,13 +1023,16 @@ async function copyShortlist(button) {
   }
   const brief = getBrief();
   const text = [
-    brief.projectName ? `项目：${brief.projectName}` : "候选模特清单",
+    brief.shootProduct ? `拍摄产品：${brief.shootProduct}` : "候选模特清单",
+    clientInfo.brandName ? `品牌：${clientInfo.brandName}` : "",
     "",
     ...selected.map(
       (model, index) =>
-        `${index + 1}. ${model.name}｜${model.gender}｜${model.age}岁｜${model.height}cm｜${model.city}｜¥${model.fee}/天｜${model.tags.join("、")}｜${model.portfolio || "暂无链接"}`,
+        `${index + 1}. ${model.code}｜${model.gender}｜${model.height}cm｜鞋码${model.shoeSize}｜${model.city}｜¥${model.fee}/时｜三围${normalizeMeasurementsText(model.measurements)}｜${model.tags.join("、")}`,
     ),
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
   await writeClipboard(text);
   if (button) flashButtonSuccess(button, "已复制");
   showToast("候选清单已复制");
@@ -916,6 +1070,56 @@ function copyWithTextarea(text) {
   textarea.remove();
 }
 
+function openModelDetails(model) {
+  const briefTags = getBrief().styleTags;
+  const works = getRelatedWorks(model, briefTags);
+  document.querySelector("#modelDetailTitle").textContent = `${model.code} 模特相关资料`;
+  document.querySelector("#modelDetailContent").innerHTML = `
+    <div class="model-detail-layout">
+      <div class="model-detail-photo" style="background-image: url('${escapeAttribute(model.photo)}')"></div>
+      <div class="model-detail-info">
+        <h3>${escapeHtml(model.code)}</h3>
+        <p>${escapeHtml(model.gender)} / ${model.height}cm / 鞋码${escapeHtml(model.shoeSize)} / ${escapeHtml(model.city)} / ¥${model.fee}/时</p>
+        <p>肤色：${escapeHtml(model.skinTone)}｜发色：${escapeHtml(model.hairColor)}｜三围：${escapeHtml(normalizeMeasurementsText(model.measurements))}</p>
+        <div class="tag-list">${model.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>
+      </div>
+    </div>
+    <div class="work-list">
+      ${works
+        .map(
+          (work) => `
+            <div class="work-item">
+              <strong>${escapeHtml(work)}</strong>
+              <p>${briefTags.length ? "根据当前需求关键词筛选" : "默认资料展示"}</p>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+  openModal("modelDetailModal");
+}
+
+function getRelatedWorks(model, briefTags) {
+  const works = model.works?.length ? model.works : [model.notes || "默认模卡资料", ...model.tags];
+  const hits = works.filter((work) => briefTags.some((tag) => work.includes(tag)));
+  return hits.length ? hits : works.slice(0, 4);
+}
+
+function openModal(id) {
+  const modal = document.querySelector(`#${id}`);
+  if (!modal) return;
+  modal.hidden = false;
+  document.body.classList.add("modal-open");
+}
+
+function closeModal(id) {
+  const modal = document.querySelector(`#${id}`);
+  if (!modal) return;
+  modal.hidden = true;
+  document.body.classList.remove("modal-open");
+}
+
 function splitTags(value) {
   if (Array.isArray(value)) return value;
   return String(value || "")
@@ -925,17 +1129,36 @@ function splitTags(value) {
 }
 
 function updateBriefProgress() {
-  const filled = briefInputs.filter((field) => {
-    const hasValue = Boolean(String(field.value || "").trim());
+  briefInputs.forEach((field) => {
+    const hasValue = field.type === "checkbox" ? field.checked : Boolean(String(field.value || "").trim());
     field.classList.toggle("has-value", hasValue);
-    return hasValue;
-  }).length;
-  const total = briefInputs.length;
+  });
+  const progressItems = getBriefProgressItems();
+  const filled = progressItems.filter((item) => item).length;
+  const total = progressItems.length;
   const percent = Math.round((filled / total) * 100);
   document.querySelector("#briefProgressText").textContent = `已填写 ${filled}/${total} 项`;
   document.querySelector("#briefProgressBar").style.width = `${percent}%`;
   document.querySelector("#briefHint").textContent =
     filled >= 5 ? "信息已经比较完整，可以提交查看推荐。" : "填写项目、城市、预算或风格后，推荐会更准确。";
+}
+
+function getBriefProgressItems() {
+  const brief = getBrief();
+  return [
+    brief.shootProduct,
+    brief.shootType,
+    brief.ageGroup,
+    brief.gender,
+    brief.skinTone,
+    brief.hairColor,
+    brief.heightMin || brief.heightMax,
+    brief.bustMin || brief.bustMax || brief.waistMin || brief.waistMax || brief.hipsMin || brief.hipsMax,
+    brief.city,
+    brief.budgetMax,
+    brief.shootDate,
+    brief.styleTags.length,
+  ];
 }
 
 function setButtonBusy(button, text) {
@@ -964,6 +1187,21 @@ function flashButtonSuccess(button, text) {
 
 function delay(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function parseMeasurements(value) {
+  const [bust = 0, waist = 0, hips = 0] = String(value || "")
+    .match(/\d+(\.\d+)?/g)
+    ?.map(Number) || [];
+  return { bust, waist, hips };
+}
+
+function normalizeMeasurementsText(value) {
+  const measurements = parseMeasurements(value);
+  if (!measurements.bust && !measurements.waist && !measurements.hips) {
+    return value || "待补充";
+  }
+  return `${measurements.bust || "-"} / ${measurements.waist || "-"} / ${measurements.hips || "-"}`;
 }
 
 function toNumber(value) {
@@ -1010,6 +1248,10 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function escapeAttribute(value) {
+  return String(value ?? "").replaceAll("\\", "\\\\").replaceAll("'", "\\'");
 }
 
 function showToast(message) {

@@ -34,8 +34,27 @@
 
             <form id="briefForm" class="brief-grid">
               <label>
-                项目名称
-                <input id="projectName" name="projectName" type="text" placeholder="如：春夏新品画册" />
+                拍摄产品
+                <input id="shootProduct" name="shootProduct" required type="text" placeholder="如：女装、护肤品、童装" />
+              </label>
+              <label>
+                拍摄类型
+                <select id="shootType" name="shootType" required>
+                  <option value="">请选择</option>
+                  <option value="室内平面">室内平面</option>
+                  <option value="室外平面">室外平面</option>
+                  <option value="室内视频">室内视频</option>
+                  <option value="室外视频">室外视频</option>
+                </select>
+              </label>
+              <label>
+                年龄
+                <select id="ageGroup" name="ageGroup">
+                  <option value="">不限</option>
+                  <option value="儿童">儿童</option>
+                  <option value="成人">成人</option>
+                  <option value="老年">老年</option>
+                </select>
               </label>
               <label>
                 性别
@@ -46,11 +65,24 @@
                 </select>
               </label>
               <label>
-                年龄范围
-                <div class="range-pair">
-                  <input id="ageMin" name="ageMin" type="number" min="0" placeholder="最小" />
-                  <input id="ageMax" name="ageMax" type="number" min="0" placeholder="最大" />
-                </div>
+                肤色
+                <select id="skinTone" name="skinTone">
+                  <option value="">不限</option>
+                  <option value="白皙">白皙</option>
+                  <option value="自然">自然</option>
+                  <option value="小麦">小麦</option>
+                  <option value="深肤色">深肤色</option>
+                </select>
+              </label>
+              <label>
+                发色
+                <select id="hairColor" name="hairColor">
+                  <option value="">不限</option>
+                  <option value="黑发">黑发</option>
+                  <option value="棕发">棕发</option>
+                  <option value="浅发">浅发</option>
+                  <option value="彩发">彩发</option>
+                </select>
               </label>
               <label>
                 身高范围 cm
@@ -59,25 +91,41 @@
                   <input id="heightMax" name="heightMax" type="number" min="0" placeholder="最大" />
                 </div>
               </label>
+              <label class="wide">
+                三围范围 cm
+                <div class="measurements-grid">
+                  <input id="bustMin" name="bustMin" type="number" min="0" placeholder="胸围最小" />
+                  <input id="bustMax" name="bustMax" type="number" min="0" placeholder="胸围最大" />
+                  <input id="waistMin" name="waistMin" type="number" min="0" placeholder="腰围最小" />
+                  <input id="waistMax" name="waistMax" type="number" min="0" placeholder="腰围最大" />
+                  <input id="hipsMin" name="hipsMin" type="number" min="0" placeholder="臀围最小" />
+                  <input id="hipsMax" name="hipsMax" type="number" min="0" placeholder="臀围最大" />
+                </div>
+              </label>
               <label>
                 拍摄城市
                 <input id="city" name="city" type="text" placeholder="如：上海、杭州" />
               </label>
               <label>
-                预算上限/天
-                <input id="budgetMax" name="budgetMax" type="number" min="0" placeholder="如：2500" />
+                预算上限/时
+                <input id="budgetMax" name="budgetMax" type="number" min="0" placeholder="如：500" />
               </label>
               <label>
                 拍摄日期
                 <input id="shootDate" name="shootDate" type="date" />
               </label>
-              <label>
-                风格关键词
-                <input id="styleTags" name="styleTags" type="text" placeholder="高级感, 运动, 甜酷" />
-              </label>
-              <label class="wide">
-                额外要求
-                <textarea id="notes" name="notes" rows="3" placeholder="如：会走秀、可短视频出镜、有美妆经验"></textarea>
+              <fieldset class="style-field wide">
+                <legend>风格关键词</legend>
+                <div class="choice-grid">
+                  <label><input type="checkbox" name="styleTags" value="阳光" />阳光</label>
+                  <label><input type="checkbox" name="styleTags" value="甜美" />甜美</label>
+                  <label><input type="checkbox" name="styleTags" value="成熟" />成熟</label>
+                  <label><input type="checkbox" name="styleTags" value="气质" />气质</label>
+                </div>
+              </fieldset>
+              <label class="wide optional-keywords">
+                补充关键词
+                <input id="styleTags" name="styleTagsText" type="text" placeholder="可补充：商务、运动、画册、美妆" />
               </label>
             </form>
 
@@ -299,6 +347,44 @@
         </div>
       </section>
     </main>
+
+    <div id="clientInfoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="clientInfoTitle" hidden>
+      <div class="modal-backdrop" data-modal-close="clientInfoModal"></div>
+      <section class="modal-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Client Info</p>
+            <h2 id="clientInfoTitle">填写需求方基本信息</h2>
+          </div>
+          <button type="button" class="secondary" data-modal-close="clientInfoModal">关闭</button>
+        </div>
+        <form id="clientInfoForm" class="modal-form">
+          <label>
+            品牌名
+            <input id="brandName" required type="text" placeholder="如：某某服饰 / 某某美妆" />
+          </label>
+          <label>
+            联系方式
+            <input id="clientContact" required type="text" placeholder="手机号 / 微信号" />
+          </label>
+          <button id="confirmClientInfoBtn" class="primary" type="submit">确认并获取推荐清单</button>
+        </form>
+      </section>
+    </div>
+
+    <div id="modelDetailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modelDetailTitle" hidden>
+      <div class="modal-backdrop" data-modal-close="modelDetailModal"></div>
+      <section class="modal-panel wide-modal">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Model Profile</p>
+            <h2 id="modelDetailTitle">模特相关资料</h2>
+          </div>
+          <button type="button" class="secondary" data-modal-close="modelDetailModal">关闭</button>
+        </div>
+        <div id="modelDetailContent"></div>
+      </section>
+    </div>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="./app.js"></script>
