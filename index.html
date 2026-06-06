@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>模卡选角系统</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Casting Workspace</p>
+        <h1>模卡选角系统</h1>
+      </div>
+      <nav class="page-nav" aria-label="页面导航">
+        <button class="nav-link active" type="button" data-page-target="client">客户需求提交</button>
+        <button class="nav-link" type="button" data-page-target="import">模特资料导入</button>
+        <button class="nav-link" type="button" data-page-target="database">模特资料库</button>
+        <button class="nav-link" type="button" data-page-target="promotion">小红书推广</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="clientPage" class="page active" data-page="client" aria-labelledby="clientPageTitle">
+        <div class="app-shell client-shell client-pending">
+          <section class="panel requirements-panel" aria-labelledby="clientPageTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Client Brief</p>
+                <h2 id="clientPageTitle">客户需求提交页面</h2>
+              </div>
+              <button id="resetBriefBtn" type="button" class="secondary">重置</button>
+            </div>
+
+            <form id="briefForm" class="brief-grid">
+              <label>
+                项目名称
+                <input id="projectName" name="projectName" type="text" placeholder="如：春夏新品画册" />
+              </label>
+              <label>
+                性别
+                <select id="gender" name="gender">
+                  <option value="">不限</option>
+                  <option value="女">女</option>
+                  <option value="男">男</option>
+                </select>
+              </label>
+              <label>
+                年龄范围
+                <div class="range-pair">
+                  <input id="ageMin" name="ageMin" type="number" min="0" placeholder="最小" />
+                  <input id="ageMax" name="ageMax" type="number" min="0" placeholder="最大" />
+                </div>
+              </label>
+              <label>
+                身高范围 cm
+                <div class="range-pair">
+                  <input id="heightMin" name="heightMin" type="number" min="0" placeholder="最小" />
+                  <input id="heightMax" name="heightMax" type="number" min="0" placeholder="最大" />
+                </div>
+              </label>
+              <label>
+                拍摄城市
+                <input id="city" name="city" type="text" placeholder="如：上海、杭州" />
+              </label>
+              <label>
+                预算上限/天
+                <input id="budgetMax" name="budgetMax" type="number" min="0" placeholder="如：2500" />
+              </label>
+              <label>
+                拍摄日期
+                <input id="shootDate" name="shootDate" type="date" />
+              </label>
+              <label>
+                风格关键词
+                <input id="styleTags" name="styleTags" type="text" placeholder="高级感, 运动, 甜酷" />
+              </label>
+              <label class="wide">
+                额外要求
+                <textarea id="notes" name="notes" rows="3" placeholder="如：会走秀、可短视频出镜、有美妆经验"></textarea>
+              </label>
+            </form>
+
+            <div class="match-actions">
+              <button id="matchBtn" type="button" class="primary">提交需求，查看推荐</button>
+              <button id="saveBriefBtn" type="button">保存当前需求</button>
+            </div>
+          </section>
+
+          <section class="panel stats-panel" aria-label="匹配概览">
+            <div class="stat">
+              <span id="totalModels">0</span>
+              <p>资料库模特</p>
+            </div>
+            <div class="stat">
+              <span id="matchedModels">0</span>
+              <p>当前匹配</p>
+            </div>
+            <div class="stat">
+              <span id="shortlistCount">0</span>
+              <p>候选清单</p>
+            </div>
+          </section>
+
+          <section class="panel results-panel" aria-labelledby="resultsTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Ranked Talents</p>
+                <h2 id="resultsTitle">推荐清单</h2>
+              </div>
+              <div class="filter-row">
+                <input id="searchInput" type="search" placeholder="搜索姓名、城市、风格" />
+                <select id="sortSelect">
+                  <option value="score">按匹配度</option>
+                  <option value="fee">按报价</option>
+                  <option value="height">按身高</option>
+                  <option value="updated">按更新时间</option>
+                </select>
+              </div>
+            </div>
+            <div id="resultsGrid" class="model-grid" aria-live="polite"></div>
+          </section>
+
+          <aside class="panel shortlist-panel" aria-labelledby="shortlistTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Send List</p>
+                <h2 id="shortlistTitle">已选推荐</h2>
+              </div>
+              <button id="copyShortlistBtn" type="button" class="secondary">复制名单</button>
+            </div>
+            <div id="shortlist" class="shortlist"></div>
+            <footer class="contact-footer">
+              <p>客户确认名单后，可复制经纪人联系方式继续沟通。</p>
+              <button id="copyContactBtn" type="button" class="primary">复制经纪人联系方式</button>
+            </footer>
+          </aside>
+        </div>
+      </section>
+
+      <section id="importPage" class="page" data-page="import" aria-labelledby="importPageTitle">
+        <div class="page-shell import-shell">
+          <section class="panel import-panel" aria-labelledby="importPageTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Import</p>
+                <h2 id="importPageTitle">模特资料导入页面</h2>
+              </div>
+              <button id="exportCsvBtn" type="button">导出资料库</button>
+            </div>
+            <div class="import-drop">
+              <label class="import-button primary-import" for="csvInput">选择 CSV 文件导入</label>
+              <input id="csvInput" class="sr-only" type="file" accept=".csv,text/csv" />
+              <button id="downloadTemplateBtn" type="button" class="secondary">下载导入模板</button>
+            </div>
+            <div class="field-guide">
+              <strong>推荐字段</strong>
+              <p>name, gender, age, height, measurements, city, fee, availability, tags, portfolio, notes</p>
+              <p>中文表头也支持：姓名、性别、年龄、身高、三围、体型、城市、报价、档期、标签、风格标签、模卡链接、备注。</p>
+            </div>
+          </section>
+
+          <section class="panel editor-panel" aria-labelledby="editorTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Manual Entry</p>
+                <h2 id="editorTitle">新增 / 编辑模特</h2>
+              </div>
+              <button id="clearFormBtn" type="button" class="secondary">清空</button>
+            </div>
+            <form id="modelForm" class="model-form">
+              <input id="modelId" type="hidden" />
+              <label>
+                姓名
+                <input id="modelName" required type="text" placeholder="模特姓名" />
+              </label>
+              <label>
+                性别
+                <select id="modelGender" required>
+                  <option value="女">女</option>
+                  <option value="男">男</option>
+                </select>
+              </label>
+              <label>
+                年龄
+                <input id="modelAge" required type="number" min="0" />
+              </label>
+              <label>
+                身高 cm
+                <input id="modelHeight" required type="number" min="0" />
+              </label>
+              <label>
+                三围 / 体型
+                <input id="modelMeasurements" type="text" placeholder="如：82/60/88 或 健身型" />
+              </label>
+              <label>
+                常驻城市
+                <input id="modelCity" required type="text" placeholder="常驻城市" />
+              </label>
+              <label>
+                报价/天
+                <input id="modelFee" required type="number" min="0" />
+              </label>
+              <label>
+                档期
+                <input id="modelAvailability" type="text" placeholder="如：6月可约、周末优先" />
+              </label>
+              <label>
+                风格标签
+                <input id="modelTags" type="text" placeholder="高级感, 商务, 运动" />
+              </label>
+              <label>
+                模卡链接
+                <input id="modelPortfolio" type="url" placeholder="https://..." />
+              </label>
+              <label class="wide">
+                备注
+                <textarea id="modelNotes" rows="3" placeholder="客户反馈、特长、合作注意事项"></textarea>
+              </label>
+              <button class="primary wide" type="submit">保存模特资料</button>
+            </form>
+          </section>
+        </div>
+      </section>
+
+      <section id="databasePage" class="page" data-page="database" aria-labelledby="databasePageTitle">
+        <div class="page-shell">
+          <section class="panel database-panel" aria-labelledby="databasePageTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Database</p>
+                <h2 id="databasePageTitle">模特资料库</h2>
+              </div>
+              <div class="filter-row">
+                <input id="databaseSearchInput" type="search" placeholder="搜索姓名、城市、风格、备注" />
+                <select id="databaseSortSelect">
+                  <option value="updated">按更新时间</option>
+                  <option value="fee">按报价</option>
+                  <option value="height">按身高</option>
+                  <option value="name">按姓名</option>
+                </select>
+              </div>
+            </div>
+            <div class="database-summary">
+              <span id="databaseTotal">0 位模特</span>
+              <button id="goImportBtn" type="button" class="secondary">新增模特</button>
+            </div>
+            <div id="databaseGrid" class="model-grid database-grid" aria-live="polite"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="promotionPage" class="page" data-page="promotion" aria-labelledby="promotionPageTitle">
+        <div class="page-shell promotion-shell">
+          <section class="panel promotion-control-panel" aria-labelledby="promotionPageTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Content Plan</p>
+                <h2 id="promotionPageTitle">小红书推广</h2>
+              </div>
+            </div>
+            <div class="promotion-controls">
+              <label>
+                选题类型
+                <select id="postTopicType">
+                  <option value="single">单模特推荐贴</option>
+                  <option value="collection">类型模特合集贴</option>
+                </select>
+              </label>
+              <div class="week-card">
+                <span id="postWeekLabel">本周内容</span>
+                <p>根据当前模特资料库生成 3 篇小红书帖子草稿。</p>
+              </div>
+              <button id="generatePostsBtn" type="button" class="primary">重新生成本周内容</button>
+              <button id="copyAllPostsBtn" type="button" class="secondary">复制全部帖子</button>
+            </div>
+          </section>
+
+          <section class="panel promotion-results-panel" aria-labelledby="promotionResultsTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Weekly Drafts</p>
+                <h2 id="promotionResultsTitle">本周 3 篇推广帖</h2>
+              </div>
+              <span id="postCountLabel" class="count-pill">0 篇</span>
+            </div>
+            <div id="postGrid" class="post-grid" aria-live="polite"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
