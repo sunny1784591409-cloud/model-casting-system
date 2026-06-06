@@ -4,6 +4,7 @@ const shortlistKey = "casting-system-shortlist";
 const postsKey = "casting-system-xhs-posts";
 const brokerContact = "经纪人：王经理｜微信：modelbook888｜电话：138-0000-8888";
 const isAdminMode = new URLSearchParams(window.location.search).get("admin") === "1";
+const memoryStore = {};
 
 const sampleModels = [
   {
@@ -163,7 +164,7 @@ function initMode() {
   document.body.classList.toggle("customer-mode", !isAdminMode);
   if (!isAdminMode) {
     shortlist = [];
-    localStorage.setItem(shortlistKey, JSON.stringify(shortlist));
+    saveJson(shortlistKey, shortlist);
     setClientPending(true);
     switchPage("client", { silent: true });
     updateStats(0);
@@ -199,21 +200,40 @@ function loadModels() {
   if (saved?.length) {
     return saved;
   }
-  localStorage.setItem(storageKey, JSON.stringify(sampleModels));
+  saveJson(storageKey, sampleModels);
   return sampleModels;
 }
 
 function loadJson(key, fallback) {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = globalThis.localStorage?.getItem(key) ?? memoryStore[key];
     return raw ? JSON.parse(raw) : fallback;
   } catch {
     return fallback;
   }
 }
 
+function saveJson(key, value) {
+  const serialized = JSON.stringify(value);
+  memoryStore[key] = serialized;
+  try {
+    globalThis.localStorage?.setItem(key, serialized);
+  } catch {
+    // file:// pages may block localStorage; memory fallback keeps the app interactive.
+  }
+}
+
+function removeJson(key) {
+  delete memoryStore[key];
+  try {
+    globalThis.localStorage?.removeItem(key);
+  } catch {
+    // See saveJson fallback note.
+  }
+}
+
 function saveModels() {
-  localStorage.setItem(storageKey, JSON.stringify(models));
+  saveJson(storageKey, models);
 }
 
 function getBrief() {
@@ -246,7 +266,7 @@ async function submitBrief(button) {
   setButtonBusy(button, "正在匹配...");
   await delay(420);
   setClientPending(false);
-  localStorage.setItem(briefKey, JSON.stringify(getBrief()));
+  saveJson(briefKey, getBrief());
   runMatch();
   setButtonReady(button, "提交需求，查看推荐");
   document.querySelector("#resultsTitle").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -447,7 +467,7 @@ function renderPromotionPosts(options = {}) {
   const posts = options.regenerate || !store[cacheKey] ? generateWeeklyPosts(type, week) : store[cacheKey];
 
   store[cacheKey] = posts;
-  localStorage.setItem(postsKey, JSON.stringify(store));
+  saveJson(postsKey, store);
   document.querySelector("#postWeekLabel").textContent = `${week} 本周内容`;
   document.querySelector("#postCountLabel").textContent = `${posts.length} 篇`;
 
@@ -606,7 +626,7 @@ async function copyPost(index, button) {
 
 function toggleShortlist(id) {
   shortlist = shortlist.includes(id) ? shortlist.filter((item) => item !== id) : [...shortlist, id];
-  localStorage.setItem(shortlistKey, JSON.stringify(shortlist));
+  saveJson(shortlistKey, shortlist);
   renderResults();
   renderDatabase();
   renderShortlist();
@@ -642,7 +662,7 @@ function updateStats(matchCount = currentMatches.length) {
 }
 
 function saveBrief(button) {
-  localStorage.setItem(briefKey, JSON.stringify(getBrief()));
+  saveJson(briefKey, getBrief());
   if (button) flashButtonSuccess(button, "已保存");
   showToast("已保存当前客户需求");
 }
@@ -661,7 +681,7 @@ function resetBrief() {
     field.value = "";
     field.classList.remove("has-value");
   });
-  localStorage.removeItem(briefKey);
+  removeJson(briefKey);
   hasSubmittedBrief = false;
   setClientPending(!isAdminMode);
   if (isAdminMode) {
