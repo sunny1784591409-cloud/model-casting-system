@@ -32,101 +32,136 @@
               <button id="resetBriefBtn" type="button" class="secondary">重置</button>
             </div>
 
-            <form id="briefForm" class="brief-grid">
-              <label>
-                拍摄产品
-                <input id="shootProduct" name="shootProduct" required type="text" placeholder="如：女装、护肤品、童装" />
-              </label>
-              <label>
-                拍摄类型
-                <select id="shootType" name="shootType" required>
-                  <option value="">请选择</option>
-                  <option value="室内平面">室内平面</option>
-                  <option value="室外平面">室外平面</option>
-                  <option value="室内视频">室内视频</option>
-                  <option value="室外视频">室外视频</option>
-                </select>
-              </label>
-              <label>
-                年龄
-                <select id="ageGroup" name="ageGroup">
-                  <option value="">不限</option>
-                  <option value="儿童">儿童</option>
-                  <option value="成人">成人</option>
-                  <option value="老年">老年</option>
-                </select>
-              </label>
-              <label>
-                性别
-                <select id="gender" name="gender">
-                  <option value="">不限</option>
-                  <option value="女">女</option>
-                  <option value="男">男</option>
-                </select>
-              </label>
-              <label>
-                肤色
-                <select id="skinTone" name="skinTone">
-                  <option value="">不限</option>
-                  <option value="白皙">白皙</option>
-                  <option value="自然">自然</option>
-                  <option value="小麦">小麦</option>
-                  <option value="深肤色">深肤色</option>
-                </select>
-              </label>
-              <label>
-                发色
-                <select id="hairColor" name="hairColor">
-                  <option value="">不限</option>
-                  <option value="黑发">黑发</option>
-                  <option value="棕发">棕发</option>
-                  <option value="浅发">浅发</option>
-                  <option value="彩发">彩发</option>
-                </select>
-              </label>
-              <label>
-                身高范围 cm
-                <div class="range-pair">
-                  <input id="heightMin" name="heightMin" type="number" min="0" placeholder="最小" />
-                  <input id="heightMax" name="heightMax" type="number" min="0" placeholder="最大" />
+            <form id="briefForm" class="brief-form">
+              <section class="required-fields" aria-labelledby="requiredFieldsTitle">
+                <div class="form-section-title">
+                  <h3 id="requiredFieldsTitle">必填项</h3>
+                  <span>6 项</span>
                 </div>
-              </label>
-              <label class="wide">
-                三围范围 cm
-                <div class="measurements-grid">
-                  <input id="bustMin" name="bustMin" type="number" min="0" placeholder="胸围最小" />
-                  <input id="bustMax" name="bustMax" type="number" min="0" placeholder="胸围最大" />
-                  <input id="waistMin" name="waistMin" type="number" min="0" placeholder="腰围最小" />
-                  <input id="waistMax" name="waistMax" type="number" min="0" placeholder="腰围最大" />
-                  <input id="hipsMin" name="hipsMin" type="number" min="0" placeholder="臀围最小" />
-                  <input id="hipsMax" name="hipsMax" type="number" min="0" placeholder="臀围最大" />
+                <div class="brief-grid">
+                  <label>
+                    拍摄产品
+                    <input id="shootProduct" name="shootProduct" required type="text" placeholder="如：女装、护肤品、童装" />
+                  </label>
+                  <label>
+                    拍摄类型
+                    <select id="shootType" name="shootType" required>
+                      <option value="">请选择</option>
+                      <option value="室内平面">室内平面</option>
+                      <option value="室外平面">室外平面</option>
+                      <option value="室内视频">室内视频</option>
+                      <option value="室外视频">室外视频</option>
+                    </select>
+                  </label>
+                  <label>
+                    性别
+                    <select id="gender" name="gender" required>
+                      <option value="">请选择</option>
+                      <option value="女">女</option>
+                      <option value="男">男</option>
+                    </select>
+                  </label>
+                  <label>
+                    拍摄城市
+                    <input id="city" name="city" required type="text" placeholder="如：上海、杭州" />
+                  </label>
+                  <label>
+                    年龄
+                    <select id="ageGroup" name="ageGroup" required>
+                      <option value="">请选择</option>
+                      <option value="儿童">儿童</option>
+                      <option value="成人">成人</option>
+                      <option value="老年">老年</option>
+                    </select>
+                  </label>
+                  <label>
+                    预算上限/时
+                    <input id="budgetMax" name="budgetMax" required type="number" min="0" placeholder="如：500" />
+                  </label>
                 </div>
-              </label>
-              <label>
-                拍摄城市
-                <input id="city" name="city" type="text" placeholder="如：上海、杭州" />
-              </label>
-              <label>
-                预算上限/时
-                <input id="budgetMax" name="budgetMax" type="number" min="0" placeholder="如：500" />
-              </label>
-              <label>
-                拍摄日期
-                <input id="shootDate" name="shootDate" type="date" />
-              </label>
-              <fieldset class="style-field wide">
-                <legend>风格关键词</legend>
-                <div class="choice-grid">
-                  <label><input type="checkbox" name="styleTags" value="阳光" />阳光</label>
-                  <label><input type="checkbox" name="styleTags" value="甜美" />甜美</label>
-                  <label><input type="checkbox" name="styleTags" value="成熟" />成熟</label>
-                  <label><input type="checkbox" name="styleTags" value="气质" />气质</label>
+              </section>
+
+              <section class="optional-fields" aria-labelledby="optionalFieldsTitle">
+                <div class="form-section-title">
+                  <h3 id="optionalFieldsTitle">选填项</h3>
+                  <span>点击标签卡填写</span>
                 </div>
-              </fieldset>
-              <label class="wide optional-keywords">
-                补充关键词
-                <input id="styleTags" name="styleTagsText" type="text" placeholder="可补充：商务、运动、画册、美妆" />
-              </label>
+                <div class="optional-card-grid">
+                  <details class="optional-card">
+                    <summary>肤色</summary>
+                    <label>
+                      肤色
+                      <select id="skinTone" name="skinTone">
+                        <option value="">不限</option>
+                        <option value="白皙">白皙</option>
+                        <option value="自然">自然</option>
+                        <option value="小麦">小麦</option>
+                        <option value="深肤色">深肤色</option>
+                      </select>
+                    </label>
+                  </details>
+                  <details class="optional-card">
+                    <summary>发色</summary>
+                    <label>
+                      发色
+                      <select id="hairColor" name="hairColor">
+                        <option value="">不限</option>
+                        <option value="黑发">黑发</option>
+                        <option value="棕发">棕发</option>
+                        <option value="浅发">浅发</option>
+                        <option value="彩发">彩发</option>
+                      </select>
+                    </label>
+                  </details>
+                  <details class="optional-card">
+                    <summary>身高范围</summary>
+                    <label>
+                      身高范围 cm
+                      <div class="range-pair">
+                        <input id="heightMin" name="heightMin" type="number" min="0" placeholder="最小" />
+                        <input id="heightMax" name="heightMax" type="number" min="0" placeholder="最大" />
+                      </div>
+                    </label>
+                  </details>
+                  <details class="optional-card wide-optional">
+                    <summary>三围范围</summary>
+                    <label>
+                      三围范围 cm
+                      <div class="measurements-grid">
+                        <input id="bustMin" name="bustMin" type="number" min="0" placeholder="胸围最小" />
+                        <input id="bustMax" name="bustMax" type="number" min="0" placeholder="胸围最大" />
+                        <input id="waistMin" name="waistMin" type="number" min="0" placeholder="腰围最小" />
+                        <input id="waistMax" name="waistMax" type="number" min="0" placeholder="腰围最大" />
+                        <input id="hipsMin" name="hipsMin" type="number" min="0" placeholder="臀围最小" />
+                        <input id="hipsMax" name="hipsMax" type="number" min="0" placeholder="臀围最大" />
+                      </div>
+                    </label>
+                  </details>
+                  <details class="optional-card">
+                    <summary>拍摄日期</summary>
+                    <label>
+                      拍摄日期
+                      <input id="shootDate" name="shootDate" type="date" />
+                    </label>
+                  </details>
+                  <details class="optional-card wide-optional">
+                    <summary>风格关键词</summary>
+                    <fieldset class="style-field">
+                      <legend>风格关键词</legend>
+                      <div class="choice-grid">
+                        <label><input type="checkbox" name="styleTags" value="阳光" />阳光</label>
+                        <label><input type="checkbox" name="styleTags" value="甜美" />甜美</label>
+                        <label><input type="checkbox" name="styleTags" value="成熟" />成熟</label>
+                        <label><input type="checkbox" name="styleTags" value="气质" />气质</label>
+                      </div>
+                    </fieldset>
+                    <label class="optional-keywords">
+                      补充关键词
+                      <input id="styleTags" name="styleTagsText" type="text" placeholder="可补充：商务、运动、画册、美妆" />
+                    </label>
+                  </details>
+                </div>
+              </section>
             </form>
 
             <div class="brief-progress" aria-live="polite">

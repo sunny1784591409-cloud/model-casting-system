@@ -243,7 +243,8 @@ legend {
   grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
   grid-template-areas:
     "brief stats"
-    "results shortlist";
+    "results results"
+    "shortlist shortlist";
   gap: 18px;
 }
 
@@ -338,6 +339,38 @@ legend {
   font-size: 20px;
 }
 
+.brief-form {
+  display: grid;
+  gap: 18px;
+}
+
+.required-fields,
+.optional-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.form-section-title h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.form-section-title span {
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .brief-grid,
 .model-form {
   display: grid;
@@ -386,6 +419,67 @@ legend {
 .choice-grid input {
   width: auto;
   margin: 0 6px 0 0;
+}
+
+.optional-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.optional-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.optional-card[open] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(15, 123, 108, 0.1);
+}
+
+.optional-card summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 0 13px;
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  list-style: none;
+}
+
+.optional-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.optional-card summary::after {
+  content: "+";
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.optional-card[open] summary::after {
+  content: "-";
+}
+
+.optional-card > label,
+.optional-card > fieldset {
+  padding: 0 13px 13px;
+}
+
+.optional-card .optional-keywords {
+  padding: 0 13px 13px;
+}
+
+.wide-optional {
+  grid-column: span 2;
 }
 
 .match-actions {
@@ -476,6 +570,10 @@ legend {
   gap: 14px;
 }
 
+.results-panel .model-grid {
+  grid-template-columns: 1fr;
+}
+
 .model-card {
   display: grid;
   gap: 13px;
@@ -491,7 +589,47 @@ legend {
   transition:
     border-color 0.18s ease,
     box-shadow 0.18s ease,
-    transform 0.18s ease;
+  transform 0.18s ease;
+}
+
+.results-panel .model-card {
+  position: relative;
+  min-height: 236px;
+  overflow: hidden;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 38%);
+  align-items: stretch;
+  background: #fff;
+  padding: 0;
+}
+
+.results-panel .model-card::after {
+  content: "";
+  grid-column: 2;
+  grid-row: 1 / -1;
+  min-height: 236px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.32) 46%, rgba(255, 255, 255, 0) 100%),
+    var(--model-photo, #eef3ef);
+  background-position: center;
+  background-size: cover;
+}
+
+.results-panel .model-card > * {
+  grid-column: 1;
+  margin-left: 16px;
+  margin-right: 12px;
+}
+
+.results-panel .model-card > :first-child {
+  margin-top: 16px;
+}
+
+.results-panel .model-card > :last-child {
+  margin-bottom: 16px;
+}
+
+.results-panel .model-card .model-card-actions {
+  align-self: end;
 }
 
 .model-card:hover,
@@ -956,6 +1094,25 @@ legend {
   .choice-grid,
   .model-detail-layout {
     grid-template-columns: 1fr;
+  }
+
+  .optional-card-grid,
+  .results-panel .model-card {
+    grid-template-columns: 1fr;
+  }
+
+  .wide-optional {
+    grid-column: auto;
+  }
+
+  .results-panel .model-card::after {
+    grid-row: 1;
+    min-height: 220px;
+  }
+
+  .results-panel .model-card > * {
+    margin-left: 14px;
+    margin-right: 14px;
   }
 
   .brief-progress > div:first-child {
