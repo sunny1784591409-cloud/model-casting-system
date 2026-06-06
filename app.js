@@ -102,6 +102,8 @@ const fields = {
   notes: document.querySelector("#notes"),
 };
 
+const briefInputs = Object.values(fields);
+
 const modelFields = {
   id: document.querySelector("#modelId"),
   name: document.querySelector("#modelName"),
@@ -126,8 +128,12 @@ const toast = document.querySelector("#toast");
 document.querySelectorAll("[data-page-target]").forEach((button) => {
   button.addEventListener("click", () => switchPage(button.dataset.pageTarget));
 });
-document.querySelector("#matchBtn").addEventListener("click", submitBrief);
-document.querySelector("#saveBriefBtn").addEventListener("click", saveBrief);
+briefInputs.forEach((field) => {
+  field.addEventListener("input", updateBriefProgress);
+  field.addEventListener("change", updateBriefProgress);
+});
+document.querySelector("#matchBtn").addEventListener("click", (event) => submitBrief(event.currentTarget));
+document.querySelector("#saveBriefBtn").addEventListener("click", (event) => saveBrief(event.currentTarget));
 document.querySelector("#resetBriefBtn").addEventListener("click", resetBrief);
 document.querySelector("#searchInput").addEventListener("input", renderResults);
 document.querySelector("#sortSelect").addEventListener("change", renderResults);
@@ -137,19 +143,20 @@ document.querySelector("#clearFormBtn").addEventListener("click", clearModelForm
 document.querySelector("#modelForm").addEventListener("submit", saveModel);
 document.querySelector("#exportCsvBtn").addEventListener("click", exportCsv);
 document.querySelector("#csvInput").addEventListener("change", importCsv);
-document.querySelector("#copyShortlistBtn").addEventListener("click", copyShortlist);
-document.querySelector("#copyContactBtn").addEventListener("click", copyBrokerContact);
+document.querySelector("#copyShortlistBtn").addEventListener("click", (event) => copyShortlist(event.currentTarget));
+document.querySelector("#copyContactBtn").addEventListener("click", (event) => copyBrokerContact(event.currentTarget));
 document.querySelector("#downloadTemplateBtn").addEventListener("click", downloadTemplate);
 document.querySelector("#goImportBtn").addEventListener("click", () => switchPage("import"));
 document.querySelector("#postTopicType").addEventListener("change", renderPromotionPosts);
 document.querySelector("#generatePostsBtn").addEventListener("click", () => renderPromotionPosts({ regenerate: true }));
-document.querySelector("#copyAllPostsBtn").addEventListener("click", copyAllPosts);
+document.querySelector("#copyAllPostsBtn").addEventListener("click", (event) => copyAllPosts(event.currentTarget));
 document.addEventListener("click", handleCardAction);
 
 restoreBrief();
 initMode();
 renderDatabase();
 renderPromotionPosts();
+updateBriefProgress();
 
 function initMode() {
   document.body.classList.toggle("admin-mode", isAdminMode);
@@ -234,11 +241,14 @@ function runMatch() {
   updateStats();
 }
 
-function submitBrief() {
+async function submitBrief(button) {
   hasSubmittedBrief = true;
+  setButtonBusy(button, "正在匹配...");
+  await delay(420);
   setClientPending(false);
   localStorage.setItem(briefKey, JSON.stringify(getBrief()));
   runMatch();
+  setButtonReady(button, "提交需求，查看推荐");
   document.querySelector("#resultsTitle").scrollIntoView({ behavior: "smooth", block: "start" });
   showToast("需求已提交，已为你生成推荐清单");
 }
@@ -364,7 +374,7 @@ function renderModelCard(model, options = {}) {
     ? `${escapeHtml(model.measurements || "未填写体型")} · ${escapeHtml(model.availability || "档期待确认")}`
     : `${escapeHtml(model.measurements || "未填写体型")} · ${escapeHtml(model.availability || "档期待确认")} · 更新 ${escapeHtml(model.updatedAt || "未记录")}`;
   return `
-    <article class="model-card">
+    <article class="model-card ${inShortlist ? "is-selected" : ""}">
       <div class="model-card-header">
         <div>
           <h3>${escapeHtml(model.name)}</h3>
@@ -388,7 +398,7 @@ function renderModelCard(model, options = {}) {
 function handleCardAction(event) {
   const postButton = event.target.closest("[data-post-action]");
   if (postButton) {
-    copyPost(Number(postButton.dataset.postIndex));
+    copyPost(Number(postButton.dataset.postIndex), postButton);
     return;
   }
 
@@ -572,23 +582,25 @@ function getCurrentPosts() {
   return store[`${getWeekKey()}:${type}`] || [];
 }
 
-async function copyAllPosts() {
+async function copyAllPosts(button) {
   const posts = getCurrentPosts();
   if (!posts.length) {
     showToast("还没有可复制的帖子");
     return;
   }
   await writeClipboard(posts.map((post, index) => `【第 ${index + 1} 篇】\n${formatPost(post)}`).join("\n\n---\n\n"));
+  if (button) flashButtonSuccess(button, "已复制全部");
   showToast("本周 3 篇帖子已复制");
 }
 
-async function copyPost(index) {
+async function copyPost(index, button) {
   const post = getCurrentPosts()[index];
   if (!post) {
     showToast("没有找到这篇帖子");
     return;
   }
   await writeClipboard(formatPost(post));
+  if (button) flashButtonSuccess(button, "已复制");
   showToast("帖子草稿已复制");
 }
 
@@ -629,8 +641,9 @@ function updateStats(matchCount = currentMatches.length) {
   renderShortlist();
 }
 
-function saveBrief() {
+function saveBrief(button) {
   localStorage.setItem(briefKey, JSON.stringify(getBrief()));
+  if (button) flashButtonSuccess(button, "已保存");
   showToast("已保存当前客户需求");
 }
 
@@ -646,6 +659,7 @@ function restoreBrief() {
 function resetBrief() {
   Object.values(fields).forEach((field) => {
     field.value = "";
+    field.classList.remove("has-value");
   });
   localStorage.removeItem(briefKey);
   hasSubmittedBrief = false;
@@ -658,6 +672,7 @@ function resetBrief() {
     updateStats(0);
   }
   showToast("已重置客户需求");
+  updateBriefProgress();
 }
 
 function saveModel(event) {
@@ -829,7 +844,7 @@ function splitCsvLine(line) {
   return values;
 }
 
-async function copyShortlist() {
+async function copyShortlist(button) {
   const selected = shortlist.map((id) => models.find((model) => model.id === id)).filter(Boolean);
   if (!selected.length) {
     showToast("候选清单还是空的");
@@ -845,11 +860,13 @@ async function copyShortlist() {
     ),
   ].join("\n");
   await writeClipboard(text);
+  if (button) flashButtonSuccess(button, "已复制");
   showToast("候选清单已复制");
 }
 
-async function copyBrokerContact() {
+async function copyBrokerContact(button) {
   await writeClipboard(brokerContact);
+  if (button) flashButtonSuccess(button, "已复制");
   showToast("经纪人联系方式已复制");
 }
 
@@ -885,6 +902,48 @@ function splitTags(value) {
     .split(/[、,，|/\s]+/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function updateBriefProgress() {
+  const filled = briefInputs.filter((field) => {
+    const hasValue = Boolean(String(field.value || "").trim());
+    field.classList.toggle("has-value", hasValue);
+    return hasValue;
+  }).length;
+  const total = briefInputs.length;
+  const percent = Math.round((filled / total) * 100);
+  document.querySelector("#briefProgressText").textContent = `已填写 ${filled}/${total} 项`;
+  document.querySelector("#briefProgressBar").style.width = `${percent}%`;
+  document.querySelector("#briefHint").textContent =
+    filled >= 5 ? "信息已经比较完整，可以提交查看推荐。" : "填写项目、城市、预算或风格后，推荐会更准确。";
+}
+
+function setButtonBusy(button, text) {
+  if (!button) return;
+  button.dataset.originalText = button.textContent;
+  button.textContent = text;
+  button.classList.add("is-loading");
+}
+
+function setButtonReady(button, fallbackText) {
+  if (!button) return;
+  button.textContent = button.dataset.originalText || fallbackText;
+  button.classList.remove("is-loading");
+}
+
+function flashButtonSuccess(button, text) {
+  if (!button) return;
+  const originalText = button.textContent;
+  button.textContent = text;
+  button.classList.add("is-confirmed");
+  window.setTimeout(() => {
+    button.textContent = originalText;
+    button.classList.remove("is-confirmed");
+  }, 1200);
+}
+
+function delay(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 function toNumber(value) {

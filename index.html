@@ -81,6 +81,16 @@
               </label>
             </form>
 
+            <div class="brief-progress" aria-live="polite">
+              <div>
+                <span id="briefProgressText">已填写 0/9 项</span>
+                <p id="briefHint">填写项目、城市、预算或风格后，推荐会更准确。</p>
+              </div>
+              <div class="progress-track" aria-hidden="true">
+                <span id="briefProgressBar"></span>
+              </div>
+            </div>
+
             <div class="match-actions">
               <button id="matchBtn" type="button" class="primary">提交需求，查看推荐</button>
               <button id="saveBriefBtn" type="button">保存当前需求</button>

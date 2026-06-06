@@ -47,13 +47,33 @@ button,
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
-    transform 0.15s ease;
+    color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 button:hover,
 .import-button:hover {
   border-color: #aab9af;
   transform: translateY(-1px);
+}
+
+button:active,
+.import-button:active {
+  transform: translateY(0);
+}
+
+button.is-loading {
+  cursor: progress;
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+button.is-confirmed {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 700;
 }
 
 button.primary,
@@ -93,6 +113,13 @@ select:focus,
 textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(15, 123, 108, 0.13);
+}
+
+input.has-value,
+select.has-value,
+textarea.has-value {
+  border-color: #b8c8bf;
+  background: #fbfdfb;
 }
 
 textarea {
@@ -190,6 +217,7 @@ label {
 
 .page.active {
   display: block;
+  animation: pageIn 0.22s ease both;
 }
 
 .app-shell,
@@ -238,6 +266,14 @@ label {
   border-radius: 8px;
   background: var(--surface);
   box-shadow: var(--shadow);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.panel:hover {
+  border-color: #c8d3cb;
 }
 
 .requirements-panel {
@@ -314,6 +350,52 @@ label {
   margin-top: 16px;
 }
 
+.brief-progress {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdfb;
+  padding: 12px;
+}
+
+.brief-progress > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.brief-progress span {
+  color: var(--accent-strong);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.brief-progress p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-strong);
+}
+
+.progress-track span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
 .stat {
   min-width: 0;
   border-radius: 8px;
@@ -359,6 +441,23 @@ label {
   border-radius: 8px;
   background: #fff;
   padding: 15px;
+  animation: cardIn 0.22s ease both;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.model-card:hover,
+.post-card:hover {
+  border-color: #b5c5bc;
+  box-shadow: 0 16px 34px rgba(30, 46, 38, 0.12);
+  transform: translateY(-2px);
+}
+
+.model-card.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(15, 123, 108, 0.12);
 }
 
 .model-card-header {
@@ -442,6 +541,7 @@ label {
   border-radius: 8px;
   padding: 12px;
   background: #fff;
+  animation: cardIn 0.18s ease both;
 }
 
 .shortlist-item strong {
@@ -574,6 +674,10 @@ label {
   border-radius: 8px;
   background: #fff;
   padding: 16px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
 
 .post-card-header {
@@ -633,6 +737,39 @@ label {
   transform: translateY(0);
 }
 
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (max-width: 1080px) {
   .client-shell {
     grid-template-columns: 1fr;
@@ -678,6 +815,11 @@ label {
   .model-form,
   .stats-panel {
     grid-template-columns: 1fr;
+  }
+
+  .brief-progress > div:first-child {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .filter-row {
