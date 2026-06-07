@@ -199,6 +199,7 @@ document.querySelector("#modelForm").addEventListener("submit", saveModel);
 document.querySelector("#exportCsvBtn").addEventListener("click", exportCsv);
 document.querySelector("#csvInput").addEventListener("change", importCsv);
 document.querySelector("#copyShortlistBtn").addEventListener("click", (event) => copyShortlist(event.currentTarget));
+document.querySelector("#exportShortlistImageBtn").addEventListener("click", (event) => exportShortlistImage(event.currentTarget));
 document.querySelector("#copyContactBtn").addEventListener("click", (event) => copyBrokerContact(event.currentTarget));
 document.querySelector("#downloadTemplateBtn").addEventListener("click", downloadTemplate);
 document.querySelector("#goImportBtn").addEventListener("click", () => switchPage("import"));
@@ -810,10 +811,14 @@ function renderShortlist() {
   shortlistEl.innerHTML = selected
     .map(
       (model) => `
-        <div class="shortlist-item">
-          <strong>${escapeHtml(model.code)} · ${model.city}</strong>
-          <p>${model.gender} / ${model.height}cm / 鞋码${escapeHtml(model.shoeSize)} / ¥${model.fee}/时</p>
-          <p>${model.tags.join("、")}</p>
+        <div class="shortlist-item orientation-${model.cardOrientation === "landscape" ? "landscape" : "portrait"}">
+          <button class="shortlist-thumb" type="button" data-action="details" data-id="${model.id}" style="--model-photo: url('${escapeAttribute(model.photo)}')" aria-label="查看 ${escapeAttribute(model.code)} 模卡"></button>
+          <div class="shortlist-copy">
+            <strong>${escapeHtml(model.code)} · ${escapeHtml(model.city)}</strong>
+            <p>${escapeHtml(model.gender)} / ${model.height}cm / 鞋码${escapeHtml(model.shoeSize)} / ¥${model.fee}/时</p>
+            <p>三围：${escapeHtml(normalizeMeasurementsText(model.measurements))}</p>
+            <div class="tag-list">${model.tags.slice(0, 4).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>
+          </div>
         </div>
       `,
     )
@@ -1064,6 +1069,257 @@ async function copyShortlist(button) {
   await writeClipboard(text);
   if (button) flashButtonSuccess(button, "已复制");
   showToast("候选清单已复制");
+}
+
+async function exportShortlistImage(button) {
+  const selected = shortlist.map((id) => models.find((model) => model.id === id)).filter(Boolean);
+  if (!selected.length) {
+    showToast("候选清单还是空的");
+    return;
+  }
+
+  setButtonBusy(button, "生成中...");
+  try {
+    const brief = getBrief();
+    const canvas = await buildShortlistCanvas(selected, brief);
+    const filename = `model-shortlist-${new Date().toISOString().slice(0, 10)}.png`;
+    await downloadCanvas(canvas, filename);
+    setButtonReady(button, "导出图片");
+    if (button) flashButtonSuccess(button, "已导出");
+    showToast("已导出推荐清单图片");
+  } catch (error) {
+    console.error(error);
+    setButtonReady(button, "导出图片");
+    showToast("图片导出失败，请检查模卡图片链接是否允许跨域加载");
+  }
+}
+
+async function buildShortlistCanvas(selected, brief) {
+  const width = 1080;
+  const padding = 52;
+  const gap = 24;
+  const cardWidth = width - padding * 2;
+  const headerHeight = 210;
+  const footerHeight = 104;
+  const rows = selected.map((model) => {
+    const isLandscape = model.cardOrientation === "landscape";
+    return {
+      model,
+      imageWidth: isLandscape ? 330 : 250,
+      imageHeight: isLandscape ? 210 : 330,
+      cardHeight: isLandscape ? 250 : 370,
+    };
+  });
+  const height = headerHeight + rows.reduce((sum, row) => sum + row.cardHeight + gap, 0) + footerHeight;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#f5f7f4";
+  ctx.fillRect(0, 0, width, height);
+  drawExportHeader(ctx, brief, selected.length, padding, width);
+
+  let y = headerHeight;
+  for (const row of rows) {
+    await drawShortlistExportCard(ctx, row.model, padding, y, cardWidth, row);
+    y += row.cardHeight + gap;
+  }
+
+  drawExportFooter(ctx, padding, height - footerHeight + 10, width - padding * 2);
+  return canvas;
+}
+
+function drawExportHeader(ctx, brief, count, padding, width) {
+  ctx.fillStyle = "#1c2521";
+  ctx.font = "700 42px PingFang SC, Microsoft YaHei, sans-serif";
+  ctx.fillText("已选模特推荐清单", padding, 78);
+
+  ctx.fillStyle = "#68746d";
+  ctx.font = "400 24px PingFang SC, Microsoft YaHei, sans-serif";
+  const projectLine = [
+    brief.shootProduct ? `拍摄产品：${brief.shootProduct}` : "",
+    brief.city ? `城市：${brief.city}` : "",
+    brief.budgetMax ? `预算上限：¥${brief.budgetMax}/时` : "",
+  ]
+    .filter(Boolean)
+    .join("   ");
+  ctx.fillText(projectLine || `共 ${count} 位候选模特`, padding, 122);
+
+  ctx.fillStyle = "#0f7b6c";
+  ctx.font = "700 22px PingFang SC, Microsoft YaHei, sans-serif";
+  ctx.fillText(clientInfo.brandName ? `品牌：${clientInfo.brandName}` : `候选数量：${count} 位`, padding, 160);
+
+  ctx.strokeStyle = "#d9e1da";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(padding, 190);
+  ctx.lineTo(width - padding, 190);
+  ctx.stroke();
+}
+
+async function drawShortlistExportCard(ctx, model, x, y, width, row) {
+  drawRoundRect(ctx, x, y, width, row.cardHeight, 18, "#ffffff", "#d9e1da");
+  const imageX = x + 22;
+  const imageY = y + 20;
+  const textX = imageX + row.imageWidth + 28;
+  const textWidth = width - row.imageWidth - 78;
+
+  const image = await loadCanvasImage(model.photo);
+  if (image) {
+    drawCoverImage(ctx, image, imageX, imageY, row.imageWidth, row.imageHeight, 14);
+  } else {
+    drawImagePlaceholder(ctx, imageX, imageY, row.imageWidth, row.imageHeight, model.code);
+  }
+
+  ctx.fillStyle = "#1c2521";
+  ctx.font = "700 34px PingFang SC, Microsoft YaHei, sans-serif";
+  ctx.fillText(model.code, textX, y + 62);
+
+  ctx.fillStyle = "#435049";
+  ctx.font = "400 23px PingFang SC, Microsoft YaHei, sans-serif";
+  const basics = `${model.gender} / ${model.height}cm / 鞋码${model.shoeSize} / ${model.city} / ¥${model.fee}/时`;
+  wrapCanvasText(ctx, basics, textX, y + 104, textWidth, 31, 2);
+
+  ctx.fillStyle = "#68746d";
+  ctx.font = "400 22px PingFang SC, Microsoft YaHei, sans-serif";
+  wrapCanvasText(ctx, `三围：${normalizeMeasurementsText(model.measurements)}`, textX, y + 168, textWidth, 30, 2);
+
+  drawExportTags(ctx, model.tags.slice(0, 5), textX, y + row.cardHeight - 72, textWidth);
+}
+
+function drawExportTags(ctx, tags, x, y, maxWidth) {
+  let cursorX = x;
+  let cursorY = y;
+  ctx.font = "400 20px PingFang SC, Microsoft YaHei, sans-serif";
+  tags.forEach((tag) => {
+    const label = `#${tag}`;
+    const tagWidth = Math.min(ctx.measureText(label).width + 26, maxWidth);
+    if (cursorX + tagWidth > x + maxWidth) {
+      cursorX = x;
+      cursorY += 38;
+    }
+    drawRoundRect(ctx, cursorX, cursorY, tagWidth, 30, 15, "#e0f1ee", "");
+    ctx.fillStyle = "#095f54";
+    ctx.fillText(label, cursorX + 13, cursorY + 21);
+    cursorX += tagWidth + 10;
+  });
+}
+
+function drawExportFooter(ctx, x, y, width) {
+  drawRoundRect(ctx, x, y, width, 68, 16, "#1c2521", "");
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "700 24px PingFang SC, Microsoft YaHei, sans-serif";
+  ctx.fillText("经纪人联系方式", x + 24, y + 42);
+  ctx.font = "400 22px PingFang SC, Microsoft YaHei, sans-serif";
+  ctx.fillText(brokerContact, x + 250, y + 42);
+}
+
+function loadCanvasImage(src) {
+  return new Promise((resolve) => {
+    if (!src) {
+      resolve(null);
+      return;
+    }
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = () => resolve(null);
+    image.src = src;
+  });
+}
+
+function drawCoverImage(ctx, image, x, y, width, height, radius) {
+  ctx.save();
+  roundedClip(ctx, x, y, width, height, radius);
+  const imageRatio = image.naturalWidth / image.naturalHeight;
+  const boxRatio = width / height;
+  const drawWidth = imageRatio > boxRatio ? height * imageRatio : width;
+  const drawHeight = imageRatio > boxRatio ? height : width / imageRatio;
+  ctx.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+  ctx.restore();
+}
+
+function drawImagePlaceholder(ctx, x, y, width, height, code) {
+  drawRoundRect(ctx, x, y, width, height, 14, "#f0f4ef", "#d9e1da");
+  ctx.fillStyle = "#68746d";
+  ctx.font = "700 28px PingFang SC, Microsoft YaHei, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(code, x + width / 2, y + height / 2);
+  ctx.font = "400 20px PingFang SC, Microsoft YaHei, sans-serif";
+  ctx.fillText("模卡图片待补充", x + width / 2, y + height / 2 + 36);
+  ctx.textAlign = "left";
+}
+
+function drawRoundRect(ctx, x, y, width, height, radius, fill, stroke) {
+  roundedPath(ctx, x, y, width, height, radius);
+  if (fill) {
+    ctx.fillStyle = fill;
+    ctx.fill();
+  }
+  if (stroke) {
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+function roundedClip(ctx, x, y, width, height, radius) {
+  roundedPath(ctx, x, y, width, height, radius);
+  ctx.clip();
+}
+
+function roundedPath(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 3) {
+  const chars = String(text).split("");
+  let line = "";
+  let lineCount = 0;
+  for (const char of chars) {
+    const testLine = line + char;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      ctx.fillText(line, x, y + lineCount * lineHeight);
+      line = char;
+      lineCount += 1;
+      if (lineCount >= maxLines) return;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line && lineCount < maxLines) {
+    ctx.fillText(line, x, y + lineCount * lineHeight);
+  }
+}
+
+function downloadCanvas(canvas, filename) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Canvas export failed"));
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+      resolve();
+    }, "image/png");
+  });
 }
 
 async function copyBrokerContact(button) {

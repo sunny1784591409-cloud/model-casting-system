@@ -760,22 +760,68 @@ legend {
   grid-template-columns: 1fr;
 }
 
+.shortlist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.shortlist-actions button {
+  min-height: 36px;
+}
+
 .shortlist {
   display: grid;
   gap: 10px;
 }
 
 .shortlist-item {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 12px;
+  overflow: hidden;
   background: #fff;
   animation: cardIn 0.18s ease both;
 }
 
+.shortlist-thumb {
+  width: 100%;
+  min-height: 142px;
+  border: 0;
+  border-radius: 0;
+  background-image: var(--model-photo);
+  background-position: center top;
+  background-size: cover;
+  cursor: zoom-in;
+  padding: 0;
+}
+
+.shortlist-item.orientation-landscape {
+  grid-template-columns: 150px minmax(0, 1fr);
+}
+
+.shortlist-item.orientation-landscape .shortlist-thumb {
+  min-height: 104px;
+}
+
+.shortlist-thumb:hover {
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.shortlist-copy {
+  display: grid;
+  gap: 7px;
+  padding: 11px 11px 11px 0;
+}
+
 .shortlist-item strong {
   display: block;
-  margin-bottom: 4px;
 }
 
 .shortlist-item p {
@@ -1187,5 +1233,23 @@ legend {
   .database-summary {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .shortlist-actions {
+    justify-content: stretch;
+  }
+
+  .shortlist-actions button {
+    flex: 1 1 130px;
+  }
+
+  .shortlist-item,
+  .shortlist-item.orientation-landscape {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .shortlist-thumb,
+  .shortlist-item.orientation-landscape .shortlist-thumb {
+    min-height: 124px;
   }
 }
