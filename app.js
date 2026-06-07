@@ -2,6 +2,7 @@ const storageKey = "casting-system-models";
 const briefKey = "casting-system-brief";
 const shortlistKey = "casting-system-shortlist";
 const postsKey = "casting-system-xhs-posts";
+const settingsKey = "casting-system-settings";
 const brokerContact = "经纪人：王经理｜微信：modelbook888｜电话：138-0000-8888";
 const isAdminMode = new URLSearchParams(window.location.search).get("admin") === "1";
 const memoryStore = {};
@@ -132,6 +133,7 @@ let currentMatches = [];
 let hasSubmittedBrief = false;
 let pendingMatchButton = null;
 let clientInfo = loadJson("casting-system-client-info", {});
+let settings = { recommendationLimit: 20, ...loadJson(settingsKey, {}) };
 
 const fields = {
   shootProduct: document.querySelector("#shootProduct"),
@@ -206,6 +208,7 @@ document.querySelector("#goImportBtn").addEventListener("click", () => switchPag
 document.querySelector("#postTopicType").addEventListener("change", renderPromotionPosts);
 document.querySelector("#generatePostsBtn").addEventListener("click", () => renderPromotionPosts({ regenerate: true }));
 document.querySelector("#copyAllPostsBtn").addEventListener("click", (event) => copyAllPosts(event.currentTarget));
+document.querySelector("#saveRecommendationLimitBtn").addEventListener("click", (event) => saveRecommendationLimit(event.currentTarget));
 document.querySelector("#clientInfoForm").addEventListener("submit", submitClientInfo);
 document.querySelectorAll("[data-modal-close]").forEach((button) => {
   button.addEventListener("click", () => closeModal(button.dataset.modalClose));
@@ -247,6 +250,7 @@ function switchPage(pageName, options = {}) {
     renderDatabase();
   }
   if (pageName === "promotion") {
+    renderAdminSettings();
     renderPromotionPosts();
   }
   if (!options.silent) {
@@ -530,6 +534,12 @@ function renderResults() {
     return b.match.score - a.match.score;
   });
 
+  const totalRows = rows.length;
+  const limit = getRecommendationLimit();
+  if (limit) {
+    rows = rows.slice(0, limit);
+  }
+
   if (!rows.length) {
     resultsGrid.innerHTML = `<div class="empty-state">暂无匹配结果。可以放宽条件，或先新增模特资料。</div>`;
     updateStats(0);
@@ -537,6 +547,12 @@ function renderResults() {
   }
 
   resultsGrid.innerHTML = rows.map((model) => renderModelCard(model, { showScore: true })).join("");
+  if (limit && totalRows > rows.length) {
+    resultsGrid.insertAdjacentHTML(
+      "beforeend",
+      `<div class="empty-state limit-note">已按后台设置展示前 ${limit} 位推荐，共匹配 ${totalRows} 位。</div>`,
+    );
+  }
   updateStats(rows.length);
 }
 
@@ -832,6 +848,31 @@ function updateStats(matchCount = currentMatches.length) {
   document.querySelector("#databaseTotal").textContent =
     `${document.querySelectorAll("#databaseGrid .model-card").length || models.length} 位模特`;
   renderShortlist();
+}
+
+function getRecommendationLimit() {
+  const limit = toNumber(settings.recommendationLimit);
+  return limit > 0 ? Math.floor(limit) : 0;
+}
+
+function renderAdminSettings() {
+  const input = document.querySelector("#recommendationLimitInput");
+  if (!input) return;
+  const limit = getRecommendationLimit();
+  input.value = limit || "";
+}
+
+function saveRecommendationLimit(button) {
+  const input = document.querySelector("#recommendationLimitInput");
+  const value = Math.max(0, Math.floor(toNumber(input.value)));
+  settings = {
+    ...settings,
+    recommendationLimit: value,
+  };
+  saveJson(settingsKey, settings);
+  renderResults();
+  if (button) flashButtonSuccess(button, "已保存");
+  showToast(value ? `推荐清单上限已设为 ${value} 位` : "推荐清单已设为不限制数量");
 }
 
 function saveBrief(button) {
