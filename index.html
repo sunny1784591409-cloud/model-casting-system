@@ -248,8 +248,8 @@
             </div>
             <div class="field-guide">
               <strong>推荐字段</strong>
-              <p>name, gender, age, height, measurements, city, fee, availability, tags, portfolio, notes</p>
-              <p>中文表头也支持：姓名、性别、年龄、身高、三围、体型、城市、报价、档期、标签、风格标签、模卡链接、备注。</p>
+              <p>name, gender, age, height, measurements, city, fee, availability, tags, photo, cardOrientation, portfolio, notes</p>
+              <p>中文表头也支持：姓名、性别、年龄、身高、三围、体型、城市、报价、档期、标签、风格标签、模卡图片链接、模卡版式、模卡链接、备注。</p>
             </div>
           </section>
 
@@ -301,6 +301,17 @@
               <label>
                 风格标签
                 <input id="modelTags" type="text" placeholder="高级感, 商务, 运动" />
+              </label>
+              <label>
+                模卡图片链接
+                <input id="modelPhoto" type="url" placeholder="https://...jpg" />
+              </label>
+              <label>
+                模卡版式
+                <select id="modelCardOrientation">
+                  <option value="portrait">竖版</option>
+                  <option value="landscape">横版</option>
+                </select>
               </label>
               <label>
                 模卡链接

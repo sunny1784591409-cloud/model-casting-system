@@ -25,6 +25,7 @@ const sampleModels = [
     tags: ["气质", "画册", "轻奢", "美妆"],
     works: ["气质护肤品棚拍", "美妆手部特写", "轻奢女装画册"],
     photo: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+    cardOrientation: "portrait",
     portfolio: "https://example.com/lin-anna",
     notes: "镜头表现稳定，适合精致商业片。",
     updatedAt: "2026-05-28",
@@ -47,6 +48,7 @@ const sampleModels = [
     tags: ["成熟", "商务", "西装", "室内平面"],
     works: ["成熟商务西装棚拍", "男装详情页", "腕表静态广告"],
     photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=80",
+    cardOrientation: "landscape",
     portfolio: "https://example.com/zhou-yubai",
     notes: "商务正装、汽车、腕表类客户反馈好。",
     updatedAt: "2026-05-30",
@@ -69,6 +71,7 @@ const sampleModels = [
     tags: ["甜美", "短视频", "潮牌", "阳光"],
     works: ["甜美饮品户外视频", "潮牌短视频", "阳光生活方式外景"],
     photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+    cardOrientation: "portrait",
     portfolio: "https://example.com/chen-luo",
     notes: "短视频节奏感好，可配合轻运动内容。",
     updatedAt: "2026-05-22",
@@ -91,6 +94,7 @@ const sampleModels = [
     tags: ["气质", "珠宝", "礼服", "成熟"],
     works: ["气质珠宝棚拍", "礼服平面大片", "成熟护肤品广告"],
     photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80",
+    cardOrientation: "portrait",
     portfolio: "https://example.com/meng-lan",
     notes: "气质强，适合预算较充足的品牌大片。",
     updatedAt: "2026-05-24",
@@ -113,6 +117,7 @@ const sampleModels = [
     tags: ["阳光", "户外", "运动", "室外视频"],
     works: ["阳光运动外景视频", "户外装备平面", "生活方式短视频"],
     photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80",
+    cardOrientation: "landscape",
     portfolio: "https://example.com/qin-ye",
     notes: "适合运动、户外生活方式、电商短视频。",
     updatedAt: "2026-05-26",
@@ -163,6 +168,8 @@ const modelFields = {
   fee: document.querySelector("#modelFee"),
   availability: document.querySelector("#modelAvailability"),
   tags: document.querySelector("#modelTags"),
+  photo: document.querySelector("#modelPhoto"),
+  cardOrientation: document.querySelector("#modelCardOrientation"),
   portfolio: document.querySelector("#modelPortfolio"),
   notes: document.querySelector("#modelNotes"),
 };
@@ -273,7 +280,15 @@ function normalizeModel(model, index = 0) {
       model.photo ||
       defaultModel.photo ||
       "https://images.unsplash.com/photo-1496440737103-cd596325d314?auto=format&fit=crop&w=900&q=80",
+    cardOrientation: normalizeCardOrientation(model.cardOrientation || model["模卡版式"] || defaultModel.cardOrientation, index),
   };
+}
+
+function normalizeCardOrientation(value, index = 0) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (["landscape", "horizontal", "横版", "横图", "16:9"].includes(normalized)) return "landscape";
+  if (["portrait", "vertical", "竖版", "竖图", "3:4"].includes(normalized)) return "portrait";
+  return index % 3 === 1 ? "landscape" : "portrait";
 }
 
 function inferAgeGroup(age) {
@@ -533,6 +548,7 @@ function renderModelCard(model, options = {}) {
     : `${escapeHtml(model.measurements || "未填写体型")} · ${escapeHtml(model.availability || "档期待确认")} · 更新 ${escapeHtml(model.updatedAt || "未记录")}`;
   const title = showScore ? model.code : `${model.code} · ${model.name}`;
   const basicInfo = `${escapeHtml(model.gender)} / ${model.height}cm / 鞋码${escapeHtml(model.shoeSize)} / ${escapeHtml(model.city)} / ¥${model.fee}/时`;
+  const orientation = model.cardOrientation === "landscape" ? "landscape" : "portrait";
   const actions = showScore
     ? `
         <button type="button" data-action="shortlist" data-id="${model.id}">${inShortlist ? "移出候选" : "加入候选"}</button>
@@ -544,14 +560,16 @@ function renderModelCard(model, options = {}) {
         <button type="button" data-action="details" data-id="${model.id}">模特相关资料</button>
       `;
   return `
-    <article class="model-card ${inShortlist ? "is-selected" : ""}" style="--model-photo: url('${escapeAttribute(model.photo)}')">
+    <article class="model-card portfolio-card orientation-${orientation} ${showScore ? "recommend-card" : "database-card"} ${inShortlist ? "is-selected" : ""}" style="--model-photo: url('${escapeAttribute(model.photo)}')">
+      <button class="model-card-visual" type="button" data-action="details" data-id="${model.id}" aria-label="查看 ${escapeAttribute(model.code)} 模特相关资料">
+        ${showScore && model.match ? `<span class="score-badge">${model.match.score}<small>匹配度</small></span>` : ""}
+      </button>
       <div class="model-card-content">
         <div class="model-card-header">
           <div>
             <h3>${escapeHtml(title)}</h3>
             <p class="model-meta">${basicInfo}</p>
           </div>
-          ${showScore && model.match ? `<div class="score-badge">${model.match.score}<small>匹配度</small></div>` : ""}
         </div>
         <div class="tag-list">${model.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>
         ${reasons.length ? `<div class="reason-list">${reasons.map((reason) => `<span class="reason">${escapeHtml(reason)}</span>`).join("")}</div>` : ""}
@@ -561,7 +579,6 @@ function renderModelCard(model, options = {}) {
           ${actions}
         </div>
       </div>
-      ${showScore ? `<div class="model-card-photo" aria-hidden="true"></div>` : ""}
     </article>
   `;
 }
@@ -863,6 +880,8 @@ function saveModel(event) {
     fee: toNumber(modelFields.fee.value) || 0,
     availability: modelFields.availability.value.trim(),
     tags: splitTags(modelFields.tags.value),
+    photo: modelFields.photo.value.trim(),
+    cardOrientation: modelFields.cardOrientation.value,
     portfolio: modelFields.portfolio.value.trim(),
     notes: modelFields.notes.value.trim(),
     updatedAt: new Date().toISOString().slice(0, 10),
@@ -893,6 +912,8 @@ function editModel(id) {
   modelFields.fee.value = model.fee;
   modelFields.availability.value = model.availability;
   modelFields.tags.value = model.tags.join(", ");
+  modelFields.photo.value = model.photo || "";
+  modelFields.cardOrientation.value = model.cardOrientation || "portrait";
   modelFields.portfolio.value = model.portfolio;
   modelFields.notes.value = model.notes;
   switchPage("import");
@@ -923,6 +944,8 @@ function exportCsv() {
     "fee",
     "availability",
     "tags",
+    "photo",
+    "cardOrientation",
     "portfolio",
     "notes",
     "updatedAt",
@@ -946,7 +969,7 @@ function importCsv(event) {
   const reader = new FileReader();
   reader.onload = () => {
     const imported = parseCsv(String(reader.result))
-      .map((row) => ({
+      .map((row, index) => normalizeModel({
         id: createId(),
         name: row.name || row["姓名"] || "",
         gender: row.gender || row["性别"] || "",
@@ -957,10 +980,12 @@ function importCsv(event) {
         fee: toNumber(row.fee || row["报价"]) || 0,
         availability: row.availability || row["档期"] || "",
         tags: splitTags(row.tags || row["标签"] || row["风格标签"] || ""),
+        photo: row.photo || row["模卡图片"] || row["模卡图片链接"] || row["照片"] || "",
+        cardOrientation: normalizeCardOrientation(row.cardOrientation || row["模卡版式"] || row["横竖版"]),
         portfolio: row.portfolio || row["模卡链接"] || "",
         notes: row.notes || row["备注"] || "",
         updatedAt: row.updatedAt || new Date().toISOString().slice(0, 10),
-      }))
+      }, index))
       .filter((row) => row.name);
 
     models = [...imported, ...models];
@@ -976,8 +1001,8 @@ function importCsv(event) {
 
 function downloadTemplate() {
   const template = [
-    "name,gender,age,height,measurements,city,fee,availability,tags,portfolio,notes",
-    '"示例模特","女","22","170","82/60/88","上海","2000","6月可约","高级感|美妆|画册","https://example.com","镜头表现稳定"',
+    "name,gender,age,height,measurements,city,fee,availability,tags,photo,cardOrientation,portfolio,notes",
+    '"示例模特","女","22","170","82/60/88","上海","2000","6月可约","高级感|美妆|画册","https://example.com/model-card.jpg","portrait","https://example.com","镜头表现稳定"',
   ].join("\n");
   downloadBlob(template, "model-import-template.csv", "text/csv");
 }
