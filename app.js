@@ -545,20 +545,23 @@ function renderModelCard(model, options = {}) {
       `;
   return `
     <article class="model-card ${inShortlist ? "is-selected" : ""}" style="--model-photo: url('${escapeAttribute(model.photo)}')">
-      <div class="model-card-header">
-        <div>
-          <h3>${escapeHtml(title)}</h3>
-          <p class="model-meta">${basicInfo}</p>
+      <div class="model-card-content">
+        <div class="model-card-header">
+          <div>
+            <h3>${escapeHtml(title)}</h3>
+            <p class="model-meta">${basicInfo}</p>
+          </div>
+          ${showScore && model.match ? `<div class="score-badge">${model.match.score}<small>匹配度</small></div>` : ""}
         </div>
-        ${showScore && model.match ? `<div class="score-badge">${model.match.score}<small>匹配度</small></div>` : ""}
+        <div class="tag-list">${model.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>
+        ${reasons.length ? `<div class="reason-list">${reasons.map((reason) => `<span class="reason">${escapeHtml(reason)}</span>`).join("")}</div>` : ""}
+        <p class="model-meta">${detailLine}</p>
+        ${!showScore && model.notes ? `<p class="model-note">${escapeHtml(model.notes)}</p>` : ""}
+        <div class="model-card-actions">
+          ${actions}
+        </div>
       </div>
-      <div class="tag-list">${model.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>
-      ${reasons.length ? `<div class="reason-list">${reasons.map((reason) => `<span class="reason">${escapeHtml(reason)}</span>`).join("")}</div>` : ""}
-      <p class="model-meta">${detailLine}</p>
-      ${!showScore && model.notes ? `<p class="model-note">${escapeHtml(model.notes)}</p>` : ""}
-      <div class="model-card-actions">
-        ${actions}
-      </div>
+      ${showScore ? `<div class="model-card-photo" aria-hidden="true"></div>` : ""}
     </article>
   `;
 }
